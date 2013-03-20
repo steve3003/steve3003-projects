@@ -204,6 +204,26 @@ public class TrisState implements Serializable {
 		return false;
 	}
 
+	private int[][] rotate(int[][] grid) {
+		int[][] fgrid = new int[3][3];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				fgrid[2 - j][i] = grid[i][j];
+			}
+		}
+		return fgrid;
+	}
+
+	private int[][] flip(int[][] grid) {
+		int[][] fgrid = new int[3][3];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				fgrid[i][2 - j] = grid[i][j];
+			}
+		}
+		return fgrid;
+	}
+
 	public TrisState getNextBestState(HashMap<Integer, TrisState> map,
 			boolean learning) {
 		ArrayList<TrisState> states = new ArrayList<TrisState>();
@@ -215,12 +235,27 @@ public class TrisState implements Serializable {
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				if (grid[i][j] == 0) {
-					grid[i][j] = turn;
+					int[][] nextGrid = copyArray(grid);
+					nextGrid[i][j] = turn;
 					TrisState ns = null;
-					int id = convertStateToInt(grid);
-					if (map.containsKey(id)) {
-						ns = map.get(id);
-					} else {
+					boolean contains = false;
+					for (int h = 0; h < 2; h++) {
+						for (int k = 0; k < 4; k++) {
+							int id = convertStateToInt(nextGrid);
+							if (map.containsKey(id)) {
+								ns = map.get(id);
+								contains = true;
+								break;
+							}
+							nextGrid = rotate(nextGrid);
+						}
+						if (contains) {
+							break;
+						}
+						nextGrid = flip(nextGrid);
+					}
+					if (!contains) {
+						int id = convertStateToInt(nextGrid);
 						ns = new TrisState(id);
 						map.put(id, ns);
 					}
@@ -232,7 +267,6 @@ public class TrisState implements Serializable {
 						minValue = ns.value;
 						bestMin = ns;
 					}
-					grid[i][j] = 0;
 					if (!states.contains(ns)) {
 						states.add(ns);
 						if (turn == 1) {
@@ -289,11 +323,18 @@ public class TrisState implements Serializable {
 		int[][] grid = copyArray(this.grid);
 
 		grid[i][j] = turn;
-		int id = convertStateToInt(grid);
-		if (map.containsKey(id)) {
-			TrisState ns = map.get(id);
-			return ns;
+		for (int h = 0; h < 2; h++) {
+			for (int k = 0; k < 4; k++) {
+				int id = convertStateToInt(grid);
+				if (map.containsKey(id)) {
+					TrisState ns = map.get(id);
+					return ns;
+				}
+				grid = rotate(grid);
+			}
+			grid = flip(grid);
 		}
+		int id = convertStateToInt(grid);
 		TrisState ns = new TrisState(id);
 		map.put(id, ns);
 		return ns;
