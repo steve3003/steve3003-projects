@@ -214,28 +214,8 @@ public class TrisState implements Serializable {
 		return fgrid;
 	}
 
-	private char[][] rotate(char[][] grid) {
-		char[][] fgrid = new char[3][3];
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				fgrid[2 - j][i] = grid[i][j];
-			}
-		}
-		return fgrid;
-	}
-
 	private int[][] flip(int[][] grid) {
 		int[][] fgrid = new int[3][3];
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				fgrid[i][2 - j] = grid[i][j];
-			}
-		}
-		return fgrid;
-	}
-
-	private char[][] flip(char[][] grid) {
-		char[][] fgrid = new char[3][3];
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				fgrid[i][2 - j] = grid[i][j];
@@ -305,12 +285,17 @@ public class TrisState implements Serializable {
 		if (!ROULETTE || !learning) {
 			if (Math.random() < GREEDY_PROBABILITY || !learning) {
 				if (turn == 1) {
+					bestMax.align(this);
 					return bestMax;
 				} else {
+					bestMin.align(this);
 					return bestMin;
 				}
 			}
-			return states.get((int) (Math.random() * states.size()));
+			TrisState trisState = states.get((int) (Math.random() * states
+					.size()));
+			trisState.align(this);
+			return trisState;
 		} else {
 			double[] values = new double[states.size()];
 			sum = sum + K * (states.size());
@@ -332,43 +317,50 @@ public class TrisState implements Serializable {
 			double rand = Math.random();
 			for (int i = 0; i < values.length; i++) {
 				if (rand < values[i]) {
+					states.get(i).align(this);
 					return states.get(i);
 				}
 			}
-			return states.get(states.size() - 1);
+			TrisState trisState = states.get(states.size() - 1);
+			trisState.align(this);
+			return trisState;
 		}
 	}
 
-	public TrisState makeMove(HashMap<Integer, TrisState> map, int i, int j,
-			char[][] currentGrid) {
-		int[][] grid = copyArray(this.grid);
-
-		boolean aligned = false;
-		char[][] cgrid = getGrid();
+	private void align(TrisState trisState) {
 		for (int h = 0; h < 2; h++) {
 			for (int k = 0; k < 4; k++) {
-				if (gridDiff(cgrid, currentGrid) < 1) {
-					aligned = true;
-					break;
+				if (countDiff(grid, trisState.grid) < 2) {
+					return;
 				}
-				cgrid = rotate(cgrid);
-				int t = i;
-				i = 2 - j;
-				j = t;
+				grid = rotate(grid);
 			}
-			if (aligned) {
-				break;
-			}
-			cgrid = flip(cgrid);
-			j = 2 - j;
+			grid = flip(grid);
 		}
-		grid[i][j] = turn;
+	}
 
+	private int countDiff(int[][] grid2, int[][] grid3) {
+		int count = 0;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				if (grid2[i][j] != grid3[i][j]) {
+					count++;
+				}
+			}
+		}
+		return count;
+	}
+
+	public TrisState makeMove(HashMap<Integer, TrisState> map, int i, int j) {
+		int[][] grid = copyArray(this.grid);
+
+		grid[i][j] = turn;
 		for (int h = 0; h < 2; h++) {
 			for (int k = 0; k < 4; k++) {
 				int id = convertStateToInt(grid);
 				if (map.containsKey(id)) {
 					TrisState ns = map.get(id);
+					ns.align(this);
 					return ns;
 				}
 				grid = rotate(grid);
@@ -378,6 +370,7 @@ public class TrisState implements Serializable {
 		int id = convertStateToInt(grid);
 		TrisState ns = new TrisState(id);
 		map.put(id, ns);
+		ns.align(this);
 		return ns;
 	}
 
@@ -399,32 +392,5 @@ public class TrisState implements Serializable {
 			}
 		}
 		return cgrid;
-	}
-
-	public char[][] getAlignedGrid(char[][] currentGrid) {
-		char[][] cgrid = getGrid();
-		for (int h = 0; h < 2; h++) {
-			for (int k = 0; k < 4; k++) {
-				if (gridDiff(cgrid, currentGrid) < 2) {
-					return cgrid;
-				}
-				cgrid = rotate(cgrid);
-			}
-			cgrid = flip(cgrid);
-		}
-		return cgrid;
-	}
-
-	private int gridDiff(char[][] grid1, char[][] grid2) {
-		int count = 0;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				if (grid1[i][j] != grid2[i][j]) {
-					count++;
-				}
-			}
-
-		}
-		return count;
 	}
 }
