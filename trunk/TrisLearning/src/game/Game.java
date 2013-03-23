@@ -20,10 +20,6 @@ import learning.TrisState;
 public class Game extends JFrame {
 
 	private static final String KNOWLEDGE_FILE = "tris.dat";
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	public static void main(String[] args) {
@@ -46,6 +42,7 @@ public class Game extends JFrame {
 	private HashMap<Integer, TrisState> map = new HashMap<Integer, TrisState>();
 
 	private TrisState state;
+	private char[][] currentGrid;
 
 	private int turn;
 
@@ -176,9 +173,11 @@ public class Game extends JFrame {
 	private void makeMove(int i, int j) {
 		if (grid[i][j].getText().equals("-")) {
 			if (!state.isTerminal()) {
-				state = state.makeMove(map, i, j);
+				state = state.makeMove(map, i, j, currentGrid);
+				currentGrid = state.getAlignedGrid(currentGrid);
 				if (!state.isTerminal()) {
 					state = state.getNextBestState(map, false);
+					currentGrid = state.getAlignedGrid(currentGrid);
 					if (state.isTerminal()) {
 						if (state.getReinforcement() != 0) {
 							JOptionPane.showMessageDialog(this, "Hai perso!!");
@@ -201,44 +200,19 @@ public class Game extends JFrame {
 	private void nextGame() {
 		turn = 1 - turn;
 		state = map.get(0);
+		currentGrid = state.getGrid();
 		if (turn == 1) {
 			state = state.getNextBestState(map, false);
+			currentGrid = state.getAlignedGrid(currentGrid);
 		}
 		updateGrid();
 	}
 
 	private void updateGrid() {
-		char[][] cgrid = state.getGrid();
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				grid[i][j].setText(String.valueOf(cgrid[i][j]));
+				grid[i][j].setText(String.valueOf(currentGrid[i][j]));
 			}
 		}
 	}
-
-	// private int[][] align(TrisState trisState) {
-	// int[][] grid = copyArray(this.grid);
-	// for (int h = 0; h < 2; h++) {
-	// for (int k = 0; k < 4; k++) {
-	// if (trisState.countDifferences(grid) <= 1) {
-	// return grid;
-	// }
-	// grid = rotate(grid);
-	// }
-	// grid = flip(grid);
-	// }
-	// return null;
-	// }
-	//
-	// private int countDifferences(int[][] grid) {
-	// int count = 0;
-	// for (int i = 0; i < 3; i++) {
-	// for (int j = 0; j < 3; j++) {
-	// if (this.grid[i][j] != grid[i][j]) {
-	// count++;
-	// }
-	// }
-	// }
-	// return count;
-	// }
 }

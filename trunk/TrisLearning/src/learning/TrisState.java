@@ -214,8 +214,28 @@ public class TrisState implements Serializable {
 		return fgrid;
 	}
 
+	private char[][] rotate(char[][] grid) {
+		char[][] fgrid = new char[3][3];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				fgrid[2 - j][i] = grid[i][j];
+			}
+		}
+		return fgrid;
+	}
+
 	private int[][] flip(int[][] grid) {
 		int[][] fgrid = new int[3][3];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				fgrid[i][2 - j] = grid[i][j];
+			}
+		}
+		return fgrid;
+	}
+
+	private char[][] flip(char[][] grid) {
+		char[][] fgrid = new char[3][3];
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				fgrid[i][2 - j] = grid[i][j];
@@ -319,10 +339,31 @@ public class TrisState implements Serializable {
 		}
 	}
 
-	public TrisState makeMove(HashMap<Integer, TrisState> map, int i, int j) {
+	public TrisState makeMove(HashMap<Integer, TrisState> map, int i, int j,
+			char[][] currentGrid) {
 		int[][] grid = copyArray(this.grid);
 
+		boolean aligned = false;
+		char[][] cgrid = getGrid();
+		for (int h = 0; h < 2; h++) {
+			for (int k = 0; k < 4; k++) {
+				if (gridDiff(cgrid, currentGrid) < 1) {
+					aligned = true;
+					break;
+				}
+				cgrid = rotate(cgrid);
+				int t = i;
+				i = 2 - j;
+				j = t;
+			}
+			if (aligned) {
+				break;
+			}
+			cgrid = flip(cgrid);
+			j = 2 - j;
+		}
 		grid[i][j] = turn;
+
 		for (int h = 0; h < 2; h++) {
 			for (int k = 0; k < 4; k++) {
 				int id = convertStateToInt(grid);
@@ -358,5 +399,32 @@ public class TrisState implements Serializable {
 			}
 		}
 		return cgrid;
+	}
+
+	public char[][] getAlignedGrid(char[][] currentGrid) {
+		char[][] cgrid = getGrid();
+		for (int h = 0; h < 2; h++) {
+			for (int k = 0; k < 4; k++) {
+				if (gridDiff(cgrid, currentGrid) < 2) {
+					return cgrid;
+				}
+				cgrid = rotate(cgrid);
+			}
+			cgrid = flip(cgrid);
+		}
+		return cgrid;
+	}
+
+	private int gridDiff(char[][] grid1, char[][] grid2) {
+		int count = 0;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				if (grid1[i][j] != grid2[i][j]) {
+					count++;
+				}
+			}
+
+		}
+		return count;
 	}
 }
