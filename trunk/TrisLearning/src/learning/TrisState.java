@@ -285,16 +285,16 @@ public class TrisState implements Serializable {
 		if (!ROULETTE || !learning) {
 			if (Math.random() < GREEDY_PROBABILITY || !learning) {
 				if (turn == 1) {
-					bestMax.align(this);
+					bestMax.align(this.grid);
 					return bestMax;
 				} else {
-					bestMin.align(this);
+					bestMin.align(this.grid);
 					return bestMin;
 				}
 			}
 			TrisState trisState = states.get((int) (Math.random() * states
 					.size()));
-			trisState.align(this);
+			trisState.align(this.grid);
 			return trisState;
 		} else {
 			double[] values = new double[states.size()];
@@ -317,20 +317,20 @@ public class TrisState implements Serializable {
 			double rand = Math.random();
 			for (int i = 0; i < values.length; i++) {
 				if (rand < values[i]) {
-					states.get(i).align(this);
+					states.get(i).align(this.grid);
 					return states.get(i);
 				}
 			}
 			TrisState trisState = states.get(states.size() - 1);
-			trisState.align(this);
+			trisState.align(this.grid);
 			return trisState;
 		}
 	}
 
-	private void align(TrisState trisState) {
+	private void align(int[][] trisState) {
 		for (int h = 0; h < 2; h++) {
 			for (int k = 0; k < 4; k++) {
-				if (countDiff(grid, trisState.grid) < 2) {
+				if (countDiff(grid, trisState) < 2) {
 					return;
 				}
 				grid = rotate(grid);
@@ -355,12 +355,13 @@ public class TrisState implements Serializable {
 		int[][] grid = copyArray(this.grid);
 
 		grid[i][j] = turn;
+		int[][] grid2 = copyArray(grid);
 		for (int h = 0; h < 2; h++) {
 			for (int k = 0; k < 4; k++) {
 				int id = convertStateToInt(grid);
 				if (map.containsKey(id)) {
 					TrisState ns = map.get(id);
-					ns.align(this);
+					ns.align(grid2);
 					return ns;
 				}
 				grid = rotate(grid);
@@ -370,7 +371,7 @@ public class TrisState implements Serializable {
 		int id = convertStateToInt(grid);
 		TrisState ns = new TrisState(id);
 		map.put(id, ns);
-		ns.align(this);
+		ns.align(grid2);
 		return ns;
 	}
 
