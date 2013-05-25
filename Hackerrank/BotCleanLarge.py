@@ -133,82 +133,15 @@ def buildSolution(n):
         n = n.parent
     return solution
 
-def decideDirection(posx, posy, board):
-    if posx <= 1 and posy > 1:
-        return "LEFT"
-    elif posx >= 3 and  posy < 3:
-        return "RIGHT"
-    elif posy <= 1 and posx < 3:
-        return "DOWN"
-    elif posy >= 3 and posx > 1:
-        return "UP"
-    return "RIGHT"
-
-def decideDirection2(posx, posy, board):
-    if posx <= 1 and posy < 3:
-        return "RIGHT"
-    elif posx >= 3 and  posy > 1:
-        return "LEFT"
-    elif posy <= 1 and posx > 1:
-        return "UP"
-    elif posy >= 3 and posx < 3:
-        return "DOWN"
-    return "RIGHT"
-
-import os
-
-def mergeBoard(filename, board):
-    if not os.path.exists(filename):    
-        with open(filename, "w") as f:
-            for i in board:
-                for j in i:
-                    f.write(j)
-                f.write("\n")
-            if (board[0][1]=='d' and board[1][1]=='d') or (board[0][1]=='d' and board[1][0]=='d'):
-                method=1
-            else:
-                method=0
-            f.write(str(method)+"\n")
-        return (board,method)
-    with open(filename) as f:
-        oldBoard = [[j for j in f.readline().strip()] for i in range(5)]
-        method=int(f.readline())
-    for i, a in enumerate(board):
-        for j, b in enumerate(a):
-            if oldBoard[i][j] == 'o':
-                oldBoard[i][j] = b
-    with open(filename, "w") as f:
-        for i in oldBoard:
-            for j in i:
-                f.write(j)
-            f.write("\n")
-        f.write(str(method)+"\n")
-    return (oldBoard,method)
-        
 
 # Head ends here
-def next_move(posx, posy, board):
-    filename = "myfile.txt"
-    board,method = mergeBoard(filename, board)
+def next_move(posx, posy, dimx, dimy, board):
     solution = bfs(posx, posy, board)
-    if solution is None:
-        if method==0:
-            print decideDirection(posx, posy, board)
-        else:
-            print decideDirection2(posx, posy, board)
-    else:
-        if str(solution[0]) == "CLEAN":
-            board[posx][posy] = '-'
-            with open(filename, "w") as f:
-                for i in board:
-                    for j in i:
-                        f.write(j)
-                    f.write("\n")
-                f.write(str(method)+"\n")
-        print solution[0]
+    print solution[0]
 
 # Tail starts here
 if __name__ == "__main__":
     pos = [int(i) for i in raw_input().strip().split()]
-    board = [[j for j in raw_input().strip()] for i in range(5)]
-    next_move(pos[0], pos[1], board)
+    dim = [int(i) for i in raw_input().strip().split()]
+    board = [[j for j in raw_input().strip()] for i in range(dim[0])]
+    next_move(pos[0], pos[1], dim[0], dim[1], board)
