@@ -30,26 +30,28 @@ class GameState(object):
 
     def move(self, player, index_hand):
         if player == 0:
-            card = self.me_hand[index_hand]
-            self.me_hand.remove(card)
+            card = self.me_hand.pop(index_hand)
         else:
-            card = self.you_hand[index_hand]
-            self.you_hand.remove(card)
+            card = self.you_hand.pop(index_hand)
         picked_cards = self.can_pick(card)
         if picked_cards:
             if player == 0:
-                self.me.extend([card, picked_cards])
+                self.sorted_insert(self.me, card)
+                self.sorted_insert(self.me, picked_cards)
             else:
-                self.you.extend([card, picked_cards])
+                self.sorted_insert(self.you, card)
+                self.sorted_insert(self.you, picked_cards)
             self.field.remove(picked_cards)
         else:
-            self.field.append(card)
+            self.sorted_insert(self.field, card)
         if len(self.me_hand) + len(self.you_hand) == 0:
-            self.me_hand = sorted([self.deck.pop() for _ in range(3)])
-            self.you_hand = sorted([self.deck.pop() for _ in range(3)])
+            if self.deck:
+                self.me_hand = sorted([self.deck.pop() for _ in range(3)])
+                self.you_hand = sorted([self.deck.pop() for _ in range(3)])
         return (State(self.me, self.you, self.me_hand, self.field), State(self.you, self.me, self.you_hand, self.field))
         
     def can_pick(self, card):
+        # TODO: add multi-pick
         number = Card.get_Card(card).number
         for c in self.field:
             n = Card.get_Card(c).number
@@ -69,4 +71,7 @@ class GameState(object):
     def __repr__(self, *args, **kwargs):
         return self.REPR % (Card.toCards(self.deck), Card.toCards(self.me), Card.toCards(self.you),
                             Card.toCards(self.me_hand), Card.toCards(self.you_hand), Card.toCards(self.field))
-    
+        
+    def sorted_insert(self, l, value):
+        index = next((i for i in range(len(l)) if l[i] >= value), len(l))
+        l.insert(index, value)
