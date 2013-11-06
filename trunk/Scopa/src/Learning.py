@@ -7,6 +7,6 @@ from GameState import GameState
 
 g = GameState()
 print g
-for i in range(6):
+for i in range(36):
     print g.move(i%2, 0)[0]
 print g
