@@ -25,8 +25,7 @@ class GameState(object):
         self.deck = self.genDeck()
         self.me = []
         self.you = []
-        self.me_hand = sorted([self.deck.pop() for _ in range(3)])
-        self.you_hand = sorted([self.deck.pop() for _ in range(3)])
+        self.distribute_cards()
         self.field = sorted([self.deck.pop() for _ in range(4)])
         self.last_to_pick = 0
 
@@ -36,7 +35,8 @@ class GameState(object):
         else:
             card = self.you_hand.pop(index_hand)
         if picked_cards:
-            if not Card.get_Card(card).can_pick(Card.toCards(picked_cards)):
+            if not (Card.get_Card(card).can_pick(Card.toCards(picked_cards)) and
+                    next([False for i in picked_cards if i not in self.field], True)):
                 picked_cards = self.can_pick(card)
         else:
             picked_cards = self.can_pick(card)
@@ -56,8 +56,7 @@ class GameState(object):
             self.sorted_insert(self.field, card)
         if len(self.me_hand) + len(self.you_hand) == 0:
             if self.deck:
-                self.me_hand = sorted([self.deck.pop() for _ in range(3)])
-                self.you_hand = sorted([self.deck.pop() for _ in range(3)])
+                self.distribute_cards()
             else:
                 for c in self.field:
                     if self.last_to_pick == 0:
@@ -69,15 +68,16 @@ class GameState(object):
         
     def can_pick(self, c):
         card = Card.get_Card(c)
-        n_field = len(self.field)
-        e_field = range(n_field)
-        for l in range(1, n_field + 1):
-            picked_indexes = list(combinations(e_field, l))
-            for p in picked_indexes:
-                picked_cards = Card.toCards([self.field[j] for j in list(p)])
+        field_cards = Card.toCards(self.field)
+        for l in range(1, len(self.field) + 1):
+            for picked_cards in combinations(field_cards, l):
                 if card.can_pick(picked_cards):
-                    return [i.id for i in picked_cards]
+                    return Card.toIds(picked_cards)
         return False
+    
+    def distribute_cards(self):
+        self.me_hand = sorted([self.deck.pop() for _ in range(3)])
+        self.you_hand = sorted([self.deck.pop() for _ in range(3)])
     
     def genDeck(self):
         deck = []
