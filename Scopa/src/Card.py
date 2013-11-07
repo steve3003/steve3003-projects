@@ -28,3 +28,7 @@ class Card(object):
     @classmethod
     def toCards(cls, l):
         return [Card.get_Card(i) for i in l]
+    
+    @classmethod
+    def toIds(cls, l):
+        return [i.id for i in l]
